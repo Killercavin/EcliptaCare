@@ -10,6 +10,9 @@ import org.jetbrains.exposed.sql.transactions.transaction
 
 object AdminService {
 
+    // getting admin by their id
+
+    // getting the admin by email
     fun getAdminByEmail(email: String): AdminEntity? {
         return transaction {
             AdminTable.select { AdminTable.email eq email }
@@ -17,9 +20,11 @@ object AdminService {
                 ?.let {
                     AdminEntity(
                         id = it[AdminTable.id].value,
-                        name = it[AdminTable.name],
+                        firstName = it[AdminTable.firstName],
+                        lastName = it[AdminTable.lastName],
                         email = it[AdminTable.email],
                         passwordHash = it[AdminTable.passwordHash],
+                        role = it[AdminTable.role], // Ensure role is stored as String
                         createdAt = it[AdminTable.createdAt].toString(),
                         updatedAt = it[AdminTable.updatedAt].toString()
                     )
@@ -27,9 +32,7 @@ object AdminService {
         }
     }
 
-
-
-    // admin profile
+    // getting full admin profile
     suspend fun getAdminProfile(id: Int): AdminProfileResponse {
         val row = dbQuery {
             AdminTable.select { AdminTable.id eq id }.singleOrNull()
@@ -38,12 +41,12 @@ object AdminService {
         return AdminProfileResponse(
             id = row[AdminTable.id].value,
             email = row[AdminTable.email],
-            name = row[AdminTable.name],
-            createdAt = row[AdminTable.createdAt].toString()
+            fullName = "${row[AdminTable.firstName]} ${row[AdminTable.lastName]}".trim(),
+            role =  row[AdminTable.role],
+            createdAt = row[AdminTable.createdAt].toString(),
+            updatedAt = row[AdminTable.updatedAt].toString()
         )
     }
 
-
-
-    // Later more operations like getProfile, updateAdmin, can be added
+    // Future: updateAdmin, disableAdmin, etc.
 }

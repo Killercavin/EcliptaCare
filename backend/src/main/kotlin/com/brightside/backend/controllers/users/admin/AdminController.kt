@@ -9,15 +9,21 @@ import io.ktor.server.application.ApplicationCall
  * Main Admin Controller - delegates to specialized sub-controllers
  * Acts as a facade for all admin-related operations
  */
-
 object AdminController {
-    // Authentication operations
 
-    // admin login
-    suspend fun login(call: ApplicationCall) = AdminAuthController.adminLogin(call)
+    // --- Authentication operations ---
 
-    // admin profile
+    suspend fun login(call: ApplicationCall) =
+        AdminAuthController.adminLogin(call)
+
+    suspend fun refreshToken(call: ApplicationCall) =
+        AdminAuthController.refreshToken(call)
+
+    // --- Profile operations ---
+
     suspend fun getAdminProfile(session: AdminSession): AdminProfileResponse {
         return AdminService.getAdminProfile(session.adminId)
     }
+
+    // In future: logout, password reset, etc.
 }

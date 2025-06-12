@@ -5,6 +5,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class AdminRecordDTO(
     val email: String,
-    val name: String,
+    val firstName: String,
+    val lastName: String,
     val passwordHash: String
 )

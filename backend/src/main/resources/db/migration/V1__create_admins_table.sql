@@ -1,4 +1,4 @@
--- admins  table
+-- admins  table creation
 CREATE TABLE IF NOT EXISTS admins (
                                       id SERIAL PRIMARY KEY,
                                       name VARCHAR(50) UNIQUE NOT NULL,

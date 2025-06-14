@@ -1,5 +1,7 @@
 package com.brightside.backend.controllers.users.admin
 
+import com.brightside.backend.exceptions.ValidationException
+import com.brightside.backend.extensions.respondError
 import com.brightside.backend.models.users.admin.dto.requests.AdminLoginRequest
 import com.brightside.backend.models.users.admin.dto.requests.RefreshTokenRequest
 import com.brightside.backend.models.users.admin.dto.responses.AdminErrorResponse
@@ -14,15 +16,17 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 
 /**
- * Specialized controller for admin authentication operations
- * Handles: login, logout, token refresh, password reset
+ * Controller class for admin authentication operations
+ * Handles: login, refresh token, etc.
  */
-object AdminAuthController {
+class AdminAuthController(
+    private val adminAuthService: AdminAuthService
+) {
 
     suspend fun adminLogin(call: ApplicationCall) {
         try {
             val request = parseAndValidateLoginRequest(call)
-            val result = AdminAuthService.adminLogin(request)
+            val result = adminAuthService.adminLogin(request)
 
             result.onSuccess { response ->
                 call.respond(HttpStatusCode.OK, response)
@@ -44,7 +48,7 @@ object AdminAuthController {
     suspend fun refreshToken(call: ApplicationCall) {
         try {
             val refreshToken = call.receive<RefreshTokenRequest>().refreshToken
-            val result = AdminAuthService.refreshToken(refreshToken)
+            val result = adminAuthService.refreshToken(refreshToken)
 
             result.fold(
                 onSuccess = { response ->
@@ -76,8 +80,8 @@ object AdminAuthController {
             throw BadRequestException("Invalid JSON format")
         }
 
-        when (val validationResult = AdminLoginValidator.validate(request)) {
-            is ValidationResult.Success -> return request
+        return when (val validationResult = AdminLoginValidator.validate(request)) {
+            is ValidationResult.Success -> request
             is ValidationResult.Error -> throw ValidationException(validationResult.message)
         }
     }
@@ -97,15 +101,3 @@ object AdminAuthController {
         }
     }
 }
-
-// Extension function for consistent error responses
-suspend fun ApplicationCall.respondError(
-    status: HttpStatusCode,
-    message: String,
-    code: String
-) {
-    respond(status, AdminErrorResponse(error = message, code = code))
-}
-
-// Validation exception used internally
-class ValidationException(message: String) : Exception(message)

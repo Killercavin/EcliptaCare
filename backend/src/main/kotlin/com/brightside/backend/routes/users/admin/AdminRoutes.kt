@@ -4,20 +4,19 @@ import com.brightside.backend.controllers.users.admin.AdminController
 import com.brightside.backend.extensions.users.admin.toAdminSession
 import com.brightside.backend.models.users.admin.dto.responses.AdminErrorResponse
 import com.brightside.backend.models.users.admin.dto.responses.ErrorCodes
-import com.brightside.backend.services.users.admin.AdminService
 import io.ktor.http.*
-import io.ktor.server.application.log
+import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.auth.jwt.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 
-fun Route.adminRoutes() {
+fun Route.adminRoutes(controller: AdminController) {
     route("/api/admin") {
 
         // Auth routes
-        post("/login") { AdminController.login(call) }
-        post("/token/refresh") { AdminController.refreshToken(call) }
+        post("/login") { controller.login(call) }
+        post("/token/refresh") { controller.refreshToken(call) }
 
         // Secure routes
         authenticate("admin-auth") {
@@ -42,7 +41,7 @@ fun Route.adminRoutes() {
                 }
 
                 try {
-                    val profile = AdminController.getAdminProfile(adminSession)
+                    val profile = controller.getAdminProfile(adminSession)
                     call.respond(HttpStatusCode.OK, profile)
                 } catch (e: Exception) {
                     call.application.log.error("Error fetching admin profile", e)

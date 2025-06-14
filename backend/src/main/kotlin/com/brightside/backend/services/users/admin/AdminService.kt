@@ -8,11 +8,23 @@ import io.ktor.server.plugins.*
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.transaction
 
-object AdminService {
+class AdminService {
 
-    // getting admin by their id
+    suspend fun getAdminProfile(id: Int): AdminProfileResponse {
+        val row = dbQuery {
+            AdminTable.select { AdminTable.id eq id }.singleOrNull()
+        } ?: throw NotFoundException("Admin with id $id not found")
 
-    // getting the admin by email
+        return AdminProfileResponse(
+            id = row[AdminTable.id].value,
+            email = row[AdminTable.email],
+            fullName = "${row[AdminTable.firstName]} ${row[AdminTable.lastName]}".trim(),
+            role = row[AdminTable.role],
+            createdAt = row[AdminTable.createdAt].toString(),
+            updatedAt = row[AdminTable.updatedAt].toString()
+        )
+    }
+
     fun getAdminByEmail(email: String): AdminEntity? {
         return transaction {
             AdminTable.select { AdminTable.email eq email }
@@ -24,7 +36,7 @@ object AdminService {
                         lastName = it[AdminTable.lastName],
                         email = it[AdminTable.email],
                         passwordHash = it[AdminTable.passwordHash],
-                        role = it[AdminTable.role], // Ensure role is stored as String
+                        role = it[AdminTable.role],
                         createdAt = it[AdminTable.createdAt].toString(),
                         updatedAt = it[AdminTable.updatedAt].toString()
                     )
@@ -32,21 +44,5 @@ object AdminService {
         }
     }
 
-    // getting full admin profile
-    suspend fun getAdminProfile(id: Int): AdminProfileResponse {
-        val row = dbQuery {
-            AdminTable.select { AdminTable.id eq id }.singleOrNull()
-        } ?: throw NotFoundException("Admin with id $id not found")
-
-        return AdminProfileResponse(
-            id = row[AdminTable.id].value,
-            email = row[AdminTable.email],
-            fullName = "${row[AdminTable.firstName]} ${row[AdminTable.lastName]}".trim(),
-            role =  row[AdminTable.role],
-            createdAt = row[AdminTable.createdAt].toString(),
-            updatedAt = row[AdminTable.updatedAt].toString()
-        )
-    }
-
-    // Future: updateAdmin, disableAdmin, etc.
+    // getAdminById
 }
